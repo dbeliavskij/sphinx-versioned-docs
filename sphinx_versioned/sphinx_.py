@@ -130,6 +130,7 @@ class EventHandlers(object):
 
         # Relative path to master_doc
         relpath = (pagename.count("/")) * "../"
+        relpath += "../" * cls.CURRENT_VERSION.count("/")
         context["relpath"] = relpath
         return
 
