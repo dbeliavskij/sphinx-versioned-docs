@@ -1,5 +1,6 @@
 import os
 import fnmatch
+import re
 import shutil
 import pathlib
 from sphinx import application
@@ -96,7 +97,7 @@ class VersionedDocs:
         return
 
     def _select_branches(self) -> None:
-        if not self.select_branches:
+        if not self.select_branches and not self.branch_regex:
             self._versions_to_pre_build = self._all_branches
             return
 
@@ -109,6 +110,13 @@ class VersionedDocs:
                 self._versions_to_pre_build.append(PseudoBranch(tag))
             else:
                 log.critical(f"Branch not found/selected: `{tag}`, use `--force` to force the build")
+
+        if self.branch_regex:
+            regex = re.compile(self.branch_regex)
+            regex_tags = [k for k in self._lookup_branch.keys() if regex.match(k)]
+            log.debug(f"Matched tags with regex: {regex_tags}")
+            if regex_tags:
+                self._versions_to_pre_build.extend([self._lookup_branch.get(x) for x in regex_tags])
 
         return
 

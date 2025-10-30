@@ -51,6 +51,12 @@ def main(
         "--branch",
         help="Build documentation for specific branches and tags.",
     ),
+    branch_regex: str = typer.Option(
+        None,
+        "-r",
+        "--branch-reg",
+        help="Build documentation for specific branches and tags, matched by provided regex",
+    ),
     main_branch: str = typer.Option(
         None,
         "-m",
@@ -143,6 +149,7 @@ def main(
             "prebuild_branches": prebuild,
             "select_branches": select_branches,
             "exclude_branches": exclude_branches,
+            "branch_regex": branch_regex,
             "main_branch": main_branch,
             "quite": quite,
             "verbose": verbose,
