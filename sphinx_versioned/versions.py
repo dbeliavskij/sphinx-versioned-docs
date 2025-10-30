@@ -91,6 +91,7 @@ class GitVersions(_BranchTag):
             if self.repo.bare:
                 log.error("The git repository is bare. Add some commits then try again!")
                 exit(-1)
+        self._check_if_clean()
         log.success("latched into the git repo")
 
         self._parse_branches()
@@ -133,7 +134,18 @@ class GitVersions(_BranchTag):
         """
         self._active_branch = name
         log.debug(f"git checkout branch/tag: `{name}`")
+
+        args = list(args)
+        if "--recurse-submodules" not in args:
+            args.append("--recurse-submodules")
+        if "--force" not in args:
+            args.append("--force")
         return self.repo.git.checkout(name, *args, **kwargs)
+    
+    def _check_if_clean(self):
+        if self.repo.is_dirty():
+            log.error("Uncommitted changes exists at repository. Commit or stash them, as tool uses checkout with --force")
+            raise git.RepositoryDirtyError
 
     @property
     def active_branch(self, *args, **kwargs):
