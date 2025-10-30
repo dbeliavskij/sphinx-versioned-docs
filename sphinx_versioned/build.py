@@ -222,16 +222,16 @@ class VersionedDocs:
         # get active branch
         self._active_branch = self.versions.active_branch
 
-        for tag in self._versions_to_pre_build:
-            log.info(f"pre-building: {tag}")
-            try:
+        try:
+            for tag in self._versions_to_pre_build:
+                log.info(f"pre-building: {tag}")
                 self._build(tag, _prebuild=True)
                 self._versions_to_build.append(tag)
-            except SphinxError:
-                log.critical(f"Pre-build failed for {tag}")
-            finally:
-                # restore to active branch
-                self.versions.checkout(self._active_branch.name)
+        except SphinxError:
+            log.critical(f"Pre-build failed for {tag}")
+        finally:
+            # restore to active branch
+            self.versions.checkout(self._active_branch.name)
 
         log.success(f"Prebuilding successful for {', '.join([x.name for x in self._versions_to_build])}")
         return
@@ -252,17 +252,17 @@ class VersionedDocs:
         self._built_version = []
         EventHandlers.VERSIONS = BuiltVersions(self._versions_to_build, self.versions.build_directory)
 
-        for tag in self._versions_to_build:
-            log.info(f"Building: {tag}")
-            try:
+        try:
+            for tag in self._versions_to_build:
+                log.info(f"Building: {tag}")
                 self._build(tag.name)
                 self._built_version.append(tag)
-            except SphinxError:
-                log.error(f"build failed for {tag}")
-                exit(-1)
-            finally:
-                # restore to active branch
-                self.versions.checkout(self._active_branch)
+        except SphinxError:
+            log.error(f"build failed for {tag}")
+            exit(-1)
+        finally:
+            # restore to active branch
+            self.versions.checkout(self._active_branch)
         return
 
     pass
