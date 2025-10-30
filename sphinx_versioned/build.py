@@ -186,7 +186,7 @@ class VersionedDocs:
         """
         # Checkout tag/branch
         self.versions.checkout(tag)
-        EventHandlers.CURRENT_VERSION = tag
+        EventHandlers.CURRENT_VERSION = tag.name
 
         with TempDir() as temp_dir:
             log.debug(f"Checking out the tag in temporary directory: {temp_dir}")
@@ -202,7 +202,7 @@ class VersionedDocs:
                 log.success(f"pre-build succeded for {tag} :)")
                 return True
 
-            output_with_tag = self.output_dir / tag
+            output_with_tag = self.output_dir / tag.name
             if not output_with_tag.exists():
                 output_with_tag.mkdir(parents=True, exist_ok=True)
 
@@ -239,7 +239,7 @@ class VersionedDocs:
             log.critical(f"Pre-build failed for {tag}")
         finally:
             # restore to active branch
-            self.versions.checkout(self._active_branch.name)
+            self.versions.checkout(self._active_branch)
 
         log.success(f"Prebuilding successful for {', '.join([x.name for x in self._versions_to_build])}")
         return
@@ -263,7 +263,7 @@ class VersionedDocs:
         try:
             for tag in self._versions_to_build:
                 log.info(f"Building: {tag}")
-                self._build(tag.name)
+                self._build(tag)
                 self._built_version.append(tag)
         except SphinxError:
             log.error(f"build failed for {tag}")

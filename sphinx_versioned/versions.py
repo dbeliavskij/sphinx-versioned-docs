@@ -108,7 +108,7 @@ class GitVersions(_BranchTag):
         -------
         :class:`bool`
         """
-        self._raw_branches = self.repo.branches
+        self._raw_branches = [ref for ref in self.repo.remote().refs]
         self._raw_tags = self.repo.tags
         self._branches = {x.name: self.build_directory / x.name for x in self._raw_branches}
         self._tags = {x.name: self.build_directory / x.name for x in self._raw_tags}
@@ -124,23 +124,34 @@ class GitVersions(_BranchTag):
         log.debug(f"Found versions: {[x.name for x in self.all_versions]}")
         return True
 
-    def checkout(self, name, *args, **kwargs) -> bool:
-        """git checkout the branch/tag with its ``name``.
+    def checkout(self, branch: git.Head) -> bool:
+        """Checkout branch/tag and handle submodules safely."""
+        self._active_branch = branch
+        log.debug(f"git checkout branch/tag: `{branch.name}`")
 
-        Parameters
-        ----------
-        name : :class:`str`
-            Name of the branch/tag.
-        """
-        self._active_branch = name
-        log.debug(f"git checkout branch/tag: `{name}`")
+        # Checkout main repo
+        if isinstance(branch, git.TagReference):
+            self.repo.git.checkout(branch.path, '--force', '--recurse-submodules')
+        else:
+            branch.checkout(force=True)
 
-        args = list(args)
-        if "--recurse-submodules" not in args:
-            args.append("--recurse-submodules")
-        if "--force" not in args:
-            args.append("--force")
-        return self.repo.git.checkout(name, *args, **kwargs)
+        # Clean submodules that are no longer part of the branch
+        try:
+            self.repo.git.submodule('sync', '--recursive')
+            self.repo.git.submodule('deinit', '--all', '--force')
+        except git.GitCommandError as e:
+            log.warning(f"Submodule cleanup failed: {e}")
+
+        # Force re-init and update submodules recursively
+        try:
+            self.repo.git.submodule('update', '--init', '--recursive', '--force')
+        except git.GitCommandError as e:
+            log.error(f"Submodule update failed: {e}")
+            raise
+
+        log.debug("Submodules successfully updated.")
+        return True
+
     
     def _check_if_clean(self):
         if self.repo.is_dirty():
