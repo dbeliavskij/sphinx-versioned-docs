@@ -1,59 +1,23 @@
+[tool.poetry]
+name = "sphinx-versioned-docs"
+version = "0.1.0"
+description = "This tool is a fork of https://github.com/devanshshukla99/sphinx-versioned-docs with some additional features and bugfixes"
+authors = ["Daniel Beliavskij <d.beliavskij@gmail.com>"]
+readme = "README.rst"
+packages = [
+    { include = "sphinx_versioned" }
+]
+
+[tool.poetry.scripts]
+sphinx-versioned = "sphinx_versioned.__main__:app"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+GitPython = "^3.1.31"
+loguru = "^0.7.0"
+sphinx = "^8.2.3"
+typer = "^0.20.0"
+
 [build-system]
-requires = [
-         "setuptools_scm",
-         "wheel"
-         ]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools_scm]
-write_to = "sphinx_versioned/_version.py"
-
-[tool.black]
-line-length = 110
-
-[tool.towncrier]
-    package = "sphinx_versioned"
-    filename = "CHANGELOG.rst"
-    directory = "docs/changes/"
-    issue_format = "`#{issue} <https://github.com/devanshshukla99/sphinx-versioned-docs/pull/{issue}>`__"
-    title_format = "{version} ({project_date})"
-
-    [[tool.towncrier.type]]
-        directory = "breaking"
-        name = "Backwards Incompatible Changes"
-        showcontent = true
-
-    [[tool.towncrier.type]]
-        directory = "api"
-        name = "API Changes"
-        showcontent = true
-
-    [[tool.towncrier.type]]
-      directory = "removal"
-      name = "Deprecations and Removals"
-      showcontent = true
-
-    [[tool.towncrier.type]]
-      directory = "feature"
-      name = "Features"
-      showcontent = true
-
-    [[tool.towncrier.type]]
-      directory = "bugfix"
-      name = "Bug Fixes"
-      showcontent = true
-
-    [[tool.towncrier.type]]
-      directory = "doc"
-      name = "Added/Improved Documentation"
-      showcontent = true
-
-    [[tool.towncrier.type]]
-      directory = "docfix"
-      name = "Documentation Fixes"
-      showcontent = true
-
-    [[tool.towncrier.type]]
-      directory = "trivial"
-      name = "Trivial/Internal Changes"
-      showcontent = true
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

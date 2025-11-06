@@ -1,1 +1,0 @@
-from sphinx_versioned._version import __version__

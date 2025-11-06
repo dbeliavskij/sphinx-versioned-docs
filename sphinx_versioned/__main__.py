@@ -1,6 +1,6 @@
-import re
 import sys
 import typer
+from typing_extensions import Annotated
 
 from loguru import logger as log
 
@@ -13,77 +13,66 @@ app = typer.Typer(add_completion=False)
 
 @app.command(help="Create sphinx documentation with a version selector menu.")
 def main(
-    chdir: str = typer.Option(
-        None,
-        "--chdir",
-        help="Make this the current working directory before running.",
-    ),
-    output_dir: str = typer.Option("docs/_build", "--output", "-O", help="Output directory."),
-    git_root: str = typer.Option(
-        None,
-        "--git-root",
-        help="Path to directory in the local repo. Default is CWD.",
-        show_default=False,
-    ),
-    local_conf: str = typer.Option(
-        "docs/conf.py",
-        "--local-conf",
-        help="Path to conf.py for sphinx-versions to read config from.",
-    ),
-    reset_intersphinx_mapping: bool = typer.Option(
-        False,
-        "--reset-intersphinx",
-        "-rI",
-        help="Reset intersphinx mapping; acts as a patch for issue #17",
-    ),
-    sphinx_compatibility: bool = typer.Option(
-        False,
-        "--sphinx-compatibility",
-        "-Sc",
-        help="Adds compatibility for older sphinx versions by monkey patching certain functions.",
-    ),
-    prebuild: bool = typer.Option(
-        True, help="Pre-builds the documentations; Use `--no-prebuild` to half the runtime."
-    ),
-    branches: str = typer.Option(
-        None,
-        "-b",
-        "--branch",
-        help="Build documentation for specific branches and tags.",
-    ),
-    branch_regex: str = typer.Option(
-        None,
-        "-r",
-        "--branch-reg",
-        help="Build documentation for specific branches and tags, matched by provided regex",
-    ),
-    main_branch: str = typer.Option(
-        None,
-        "-m",
-        "--main-branch",
-        help="Main branch to which the top-level `index.html` redirects to. Defaults to `main`.",
-        show_default="main",
-    ),
-    floating_badge: bool = typer.Option(
-        False, "--floating-badge", "--badge", help="Turns the version selector menu into a floating badge."
-    ),
-    quite: bool = typer.Option(
-        True, help="Silent `sphinx`. Use `--no-quite` to get build output from `sphinx`."
-    ),
-    verbose: bool = typer.Option(
-        False,
-        "--verbose",
-        "-v",
-        help="Passed directly to sphinx. Specify more than once for more logging in sphinx.",
-    ),
-    loglevel: str = typer.Option(
-        "info", "-log", "--log", help="Provide logging level. Example --log debug, default=info"
-    ),
-    force_branches: bool = typer.Option(
-        False,
-        "--force",
-        help="Force branch selection. Use this option to build detached head/commits. [Default: False]",
-    ),
+    chdir: Annotated[
+        str,
+        typer.Option(help="Make this the current working directory before running.")
+    ] = None,
+    output_dir: Annotated[
+        str,
+        typer.Option("--output", "-o", help="Output directory.")
+    ] = "docs/_build",
+    git_root: Annotated[
+        str,
+        typer.Option(help="Path to directory in the local repo. Default is CWD.", show_default=False)
+    ] = None,
+    local_conf: Annotated[
+        str,
+        typer.Option(help="Path to conf.py for sphinx-versions to read config from.")
+    ] = "docs/conf.py",
+    reset_intersphinx_mapping: Annotated[
+        bool,
+        typer.Option("--reset-intersphinx", "-rI", help="Reset intersphinx mapping; acts as a patch for issue #17")
+    ] = False,
+    sphinx_compatibility: Annotated[
+        bool,
+        typer.Option("--sphinx-compatibility", "-Sc", help="Adds compatibility for older sphinx versions by monkey patching certain functions.")
+    ] = False,
+    prebuild: Annotated[
+        bool,
+        typer.Option(help="Pre-builds the documentations; Use `--no-prebuild` to half the runtime.")
+    ] = True,
+    branches: Annotated[
+        str,
+        typer.Option("--branch", "-b", help="Build documentation for specific branches and tags.")
+    ] = None,
+    branch_regex: Annotated[
+        str,
+        typer.Option(help="Build documentation for specific branches and tags, matched by provided regex")
+    ] = None,
+    main_branch: Annotated[
+        str,
+        typer.Option("--main-branch", "-m", help="Main branch to which the top-level `index.html` redirects to. Defaults to `main`.", show_default="main")
+    ] = None,
+    floating_badge: Annotated[
+        bool,
+        typer.Option(help="Turns the version selector menu into a floating badge.")
+    ] = False,
+    quite: Annotated[
+        bool,
+        typer.Option(help="Silent `sphinx`. Use `--no-quite` to get build output from `sphinx`.")
+    ] = True,
+    verbose: Annotated[
+        bool,
+        typer.Option("--verbose", "-v", help="Passed directly to sphinx. Specify more than once for more logging in sphinx.")
+    ] = False,
+    loglevel: Annotated[
+        str,
+        typer.Option("--log", help="Provide logging level. Example --log debug")
+    ] = "info",
+    force_branches: Annotated[
+        bool,
+        typer.Option("--force", help="Force branch selection. Use this option to build detached head/commits. [Default: False]")
+    ] = False,
 ) -> None:
     """
     Typer application for initializing the ``sphinx-versioned`` build.

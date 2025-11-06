@@ -155,8 +155,7 @@ class GitVersions(_BranchTag):
     
     def _check_if_clean(self):
         if self.repo.is_dirty():
-            log.error("Uncommitted changes exists at repository. Commit or stash them, as tool uses checkout with --force")
-            raise git.RepositoryDirtyError
+            raise git.RepositoryDirtyError(self.repo, "Uncommitted changes exists at repository. Commit or stash them, as tool uses checkout with --force")
 
     @property
     def active_branch(self, *args, **kwargs):
