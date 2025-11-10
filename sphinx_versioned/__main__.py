@@ -73,6 +73,10 @@ def main(
         bool,
         typer.Option("--force", help="Force branch selection. Use this option to build detached head/commits. [Default: False]")
     ] = False,
+    cache: Annotated[
+        str,
+        typer.Option(help="Path to directory with previously build versioned docs. The builder will use it, to avoid rebuilding valid versions")
+    ] = None
 ) -> None:
     """
     Typer application for initializing the ``sphinx-versioned`` build.
@@ -143,6 +147,7 @@ def main(
             "quite": quite,
             "verbose": verbose,
             "force_branches": force_branches,
+            "cache" : cache
         }
     )
 

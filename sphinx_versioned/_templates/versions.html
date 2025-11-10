@@ -6,47 +6,15 @@
       v: {{ current_version }}
       <span class="fa fa-caret-down"></span>
     </span>
-    <div class="rst-other-versions">
-      {%- if versions.tags %}
-      <dl>
-        <dt>Tags</dt>
-        {%- for name, url in versions.tags.items() %}
-        <dd class="{{'rtd-current-item' if name==current_version }}">
-          <a href="{{ relpath }}{{ url }}">{{ name }}</a>
-        </dd>
-        {%- endfor %}
-      </dl>
-      {%- endif %}
-      {%- if versions.branches %}
-      <dl>
-        <dt>Branches</dt>
-        {%- for name, url in versions.branches.items() %}
-        <dd class="{{'rtd-current-item' if name==current_version }}">
-          <a href="{{ relpath }}{{ url }}">{{ name }}</a>
-        </dd>
-        {%- endfor %}
-      </dl>
-      {%- endif %}
-      {%- if project_url %}
-      <dl>
-        <dt>Project home</dt>
-        <dd>
-          <a href="{{ project_url }}">View</a>
-        </dd>
-      </dl>
-      {%- endif %}
-      <dl>
-        <dt>Search</dt>
-        <dd>
-          <div style="padding: 6px;">
-            <form id="flyout-search-form" class="wy-form" target="_blank" action="{{ relpath }}
-              {{ versions.branches.get(current_version) if versions.branches.get(current_version)
-              else versions.tags.get(current_version) }}/../search.html" method="get">
-              <input type="text" name="q" aria-label="Search docs" placeholder="Search docs">
-            </form>
-          </div>
-        </dd>
-      </dl>
-    </div>
+    <div id="rst-other-versions"></div>
+    <script>
+      fetch("{{ relpath }}versions_picker.html")
+        .then(response => response.text())
+        .then(html => {
+          document.getElementById('rst-other-versions').innerHTML = html;
+        })
+        .catch(err => console.error('Could not load version picker:', err));
+    </script>
   </div>
+</div>
 </div>

@@ -39,7 +39,7 @@ class _BranchTag(ABC):
         :class:`dict`
         """
         return {
-            x: "../" + str(y.relative_to(self.build_directory) / "index.html")
+            x: "../" + os.path.join(str(y.relative_to(self.build_directory)).replace("/", "_").replace("\\", "_"), "index.html")
             for x, y in self._branches.items()
         }
 
@@ -52,7 +52,7 @@ class _BranchTag(ABC):
         :class:`dict`
         """
         return {
-            x: "../" + str(y.relative_to(self.build_directory) / "index.html") for x, y in self._tags.items()
+            x: "../" + os.path.join(str(y.relative_to(self.build_directory)).replace("/", "_").replace("\\", "_"), "index.html") for x, y in self._tags.items()
         }
 
     pass
@@ -124,7 +124,7 @@ class GitVersions(_BranchTag):
         log.debug(f"Found versions: {[x.name for x in self.all_versions]}")
         return True
 
-    def checkout(self, branch: git.Head) -> bool:
+    def checkout(self, branch) -> bool:
         """Checkout branch/tag and handle submodules safely."""
         self._active_branch = branch
         log.debug(f"git checkout branch/tag: `{branch.name}`")

@@ -6,6 +6,8 @@ import pathlib
 from sphinx import application
 from sphinx.errors import SphinxError
 from sphinx.cmd.build import build_main
+from pathlib import Path
+from jinja2 import Environment, FileSystemLoader
 
 from loguru import logger as log
 
@@ -62,6 +64,7 @@ class VersionedDocs:
 
         # Adds a top-level `index.html` in `output_dir` which redirects to `output_dir`/`main-branch`/index.html
         self._generate_top_level_index()
+        self._generate_version_picker()
 
         print(f"\n\033[92m Successfully built {', '.join([x.name for x in self._built_version])} \033[0m")
         return
@@ -95,6 +98,11 @@ class VersionedDocs:
 
         log.success(f"located conf.py")
         return
+    
+    def _are_different_paths(path1, path2):
+        p1 = Path(path1).resolve()
+        p2 = Path(path2).resolve()
+        return p1 != p2
 
     def _select_branches(self) -> None:
         if not self.select_branches and not self.branch_regex:
@@ -167,6 +175,31 @@ class VersionedDocs:
             """
             )
         return
+    
+    def _generate_version_picker(self):
+        log.info("Generating version picker")
+        templates_dir = os.path.join(os.path.dirname(__file__), "_templates")
+        env = Environment(loader=FileSystemLoader(templates_dir), autoescape=True)
+        template = env.get_template("versions_picker.html")
+        with open(self.output_dir / "versions_picker.html", "w") as picker_file:
+            picker_file.write(template.render(versions=EventHandlers.VERSIONS))
+
+    def _check_cache(self, tag, out_dir_name):
+        if self.cache is None:
+            return False
+
+        cache_dir = os.path.join(self.cache, out_dir_name)
+        cache_sha_filename = os.path.join(cache_dir, ".sha")
+
+    
+        if not (os.path.exists(cache_dir) and os.path.exists(cache_sha_filename)):
+            return False
+
+        with open(cache_sha_filename, "r") as sha_file:
+            if sha_file.read() == tag.commit.hexsha:
+                return True
+            else:
+                return False
 
     def _build(self, tag, _prebuild: bool = False) -> bool:
         """Internal build method which actually carries out the pre-build/build transctions
@@ -184,11 +217,30 @@ class VersionedDocs:
         -------
         :class:`bool`
         """
-        # Checkout tag/branch
-        self.versions.checkout(tag)
-        EventHandlers.CURRENT_VERSION = tag.name
+        # Setup paths and variables
+        tag_dir = tag.name.replace("/", "_")
+        output_with_tag = self.output_dir / tag_dir
+        cache_with_tag = os.path.join(self.cache, tag_dir) if self.cache else None
+        cache_valid = self._check_cache(tag, tag_dir)
+
+        if not output_with_tag.exists():
+                output_with_tag.mkdir(parents=True, exist_ok=True)
 
         with TempDir() as temp_dir:
+            if cache_valid:
+                log.success(f"Cache is up-to-date for {tag}. Reusing and skipping build")
+                if VersionedDocs._are_different_paths(cache_with_tag, output_with_tag):
+                    shutil.copytree(cache_with_tag, output_with_tag, False, None, dirs_exist_ok=True)
+                return True
+            elif cache_with_tag is not None:
+                log.info(f"Cache is outdated for {tag}. Building")
+                # Still copy, so that sphinx incremental build could be utilized
+                shutil.copytree(cache_with_tag, temp_dir, False, None, dirs_exist_ok=True)
+
+            # Checkout tag/branch
+            self.versions.checkout(tag)
+            EventHandlers.CURRENT_VERSION = tag.name
+
             log.debug(f"Checking out the tag in temporary directory: {temp_dir}")
             source = str(self.local_conf.parent)
             target = temp_dir
@@ -199,15 +251,14 @@ class VersionedDocs:
                 raise SphinxError
 
             if _prebuild:
-                log.success(f"pre-build succeded for {tag} :)")
+                log.success(f"pre-build succeeded for {tag} :)")
                 return True
 
-            output_with_tag = self.output_dir / tag.name
-            if not output_with_tag.exists():
-                output_with_tag.mkdir(parents=True, exist_ok=True)
+            with open(os.path.join(temp_dir, ".sha"), "w") as sha_file:
+                sha_file.write(tag.commit.hexsha)
 
             shutil.copytree(temp_dir, output_with_tag, False, None, dirs_exist_ok=True)
-            log.success(f"build succeded for {tag} ;)")
+            log.success(f"build succeeded for {tag} ;)")
             return True
 
     def prebuild(self) -> None:

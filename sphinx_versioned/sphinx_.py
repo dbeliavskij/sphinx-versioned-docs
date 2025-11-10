@@ -129,8 +129,7 @@ class EventHandlers(object):
         context["floating_badge"] = cls.FLYOUT_FLOATING_BADGE
 
         # Relative path to master_doc
-        relpath = (pagename.count("/")) * "../"
-        relpath += "../" * cls.CURRENT_VERSION.count("/")
+        relpath = (pagename.count("/")) * "../" + "../"
         context["relpath"] = relpath
         return
 
