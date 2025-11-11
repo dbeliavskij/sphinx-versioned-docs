@@ -17,12 +17,16 @@ class PseudoBranch:
         Branch/pseudo-branch name.
     """
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, repo : git.Repo, name: str) -> None:
+        self.repo = repo
         self.name = name
         return
 
     def __repr__(self) -> str:
         return self.name
+    
+    def checkout(self, *args, **kwargs):
+        return self.repo.git.checkout(self.name, *args, **kwargs)
 
     pass
 
@@ -165,7 +169,7 @@ class GitVersions(_BranchTag):
 
         if self.repo.head.is_detached:
             log.warning(f"git head detached: {self.repo.head.is_detached}")
-            return PseudoBranch(self.repo.head.object.hexsha)
+            return PseudoBranch(self.repo, self.repo.head.object.hexsha)
 
         return self.repo.active_branch
 

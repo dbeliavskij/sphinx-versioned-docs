@@ -115,7 +115,7 @@ class VersionedDocs:
                 self._versions_to_pre_build.extend([self._lookup_branch.get(x) for x in filtered_tags])
             elif self.force_branches:
                 log.warning(f"Forcing build for branch `{tag}`, be careful, it may or may not exist!")
-                self._versions_to_pre_build.append(PseudoBranch(tag))
+                self._versions_to_pre_build.append(PseudoBranch(self.versions.repo, tag))
             else:
                 log.critical(f"Branch not found/selected: `{tag}`, use `--force` to force the build")
 
