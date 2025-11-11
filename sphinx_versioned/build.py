@@ -232,7 +232,7 @@ class VersionedDocs:
                 if VersionedDocs._are_different_paths(cache_with_tag, output_with_tag):
                     shutil.copytree(cache_with_tag, output_with_tag, False, None, dirs_exist_ok=True)
                 return True
-            elif cache_with_tag is not None:
+            elif (cache_with_tag is not None) and os.path.exists(os.path.join(cache_with_tag, 'index.html')):
                 log.info(f"Cache is outdated for {tag}. Building")
                 # Still copy, so that sphinx incremental build could be utilized
                 shutil.copytree(cache_with_tag, temp_dir, False, None, dirs_exist_ok=True)
