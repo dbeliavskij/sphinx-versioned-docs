@@ -76,6 +76,13 @@ def main(
     cache: Annotated[
         str,
         typer.Option(help="Path to directory with previously build versioned docs. The builder will use it, to avoid rebuilding valid versions")
+    ] = None,
+    update_only: Annotated[
+        str,
+        typer.Option(help="""
+This flag ensures that only tag/branch that is specified in this option will be actually built. \
+Other versions will be in version picker and document tree if they are found in cache \
+                     """)
     ] = None
 ) -> None:
     """
@@ -147,7 +154,8 @@ def main(
             "quite": quite,
             "verbose": verbose,
             "force_branches": force_branches,
-            "cache" : cache
+            "cache" : cache,
+            "update_only": update_only
         }
     )
 

@@ -237,6 +237,10 @@ class VersionedDocs:
                 # Still copy, so that sphinx incremental build could be utilized
                 shutil.copytree(cache_with_tag, temp_dir, False, None, dirs_exist_ok=True)
 
+            if (self.update_only is not None) and not fnmatch.fnmatch(tag.name, self.update_only):
+                log.info(f"Tag {tag} is out of date, but won't rebuild due to `--update-only {self.update_only}`")
+                return os.path.exists(os.path.join(output_with_tag, 'index.html')) # To indicate whether version exists or not
+
             # Checkout tag/branch
             self.versions.checkout(tag)
             EventHandlers.CURRENT_VERSION = tag.name
@@ -309,18 +313,18 @@ class VersionedDocs:
         self._active_branch = self.versions.active_branch
 
         self._built_version = []
-        EventHandlers.VERSIONS = BuiltVersions(self._versions_to_build, self.versions.build_directory)
 
         try:
             for tag in self._versions_to_build:
                 log.info(f"Building: {tag}")
-                self._build(tag)
-                self._built_version.append(tag)
+                if self._build(tag):
+                    self._built_version.append(tag)
         except SphinxError:
             log.error(f"build failed for {tag}")
             exit(-1)
         finally:
             # restore to active branch
+            EventHandlers.VERSIONS = BuiltVersions(self._built_version, self.versions.build_directory)
             self.versions.checkout(self._active_branch)
         return
 

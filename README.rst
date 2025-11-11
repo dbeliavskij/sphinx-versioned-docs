@@ -50,5 +50,7 @@ How to use
 │ --force                                                   Force branch selection. Use this option to build detached head/commits. [Default: False]       │
 │ --cache                                             TEXT  Path to directory with previously build versioned docs. The builder will use it, to avoid      │
 │                                                           rebuilding valid versions                                                                      │
+│ --update-only                                       TEXT  This flag ensures that only tag/branch that is specified in this option will be actually       │
+│                                                           built. Other versions will be in version picker and document tree if they are found in cache   │
 │ --help                                                    Show this message and exit.                                                                    │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
