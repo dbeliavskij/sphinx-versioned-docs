@@ -170,7 +170,7 @@ class VersionedDocs:
                 <html>
                 <head>
                 <meta http-equiv="refresh" content="0; url =
-                {self.main_branch}/index.html" />
+                {self.main_branch.replace("/", "_").replace("\\", "_")}/index.html" />
                 </head>
             """
             )

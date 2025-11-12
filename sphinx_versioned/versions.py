@@ -123,7 +123,7 @@ class GitVersions(_BranchTag):
             log.warning(f"git head detached {self.repo.head.is_detached}")
             if self.force_branches:
                 log.debug("Forcing detached commit into PseudoBranch")
-                self.all_versions.append(PseudoBranch(self.repo.head.object.hexsha))
+                self.all_versions.append(PseudoBranch(self.repo, self.repo.head.object.hexsha))
 
         log.debug(f"Found versions: {[x.name for x in self.all_versions]}")
         return True
