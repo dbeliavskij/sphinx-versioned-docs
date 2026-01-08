@@ -14,6 +14,7 @@ from loguru import logger as log
 from sphinx_versioned.sphinx_ import EventHandlers
 from sphinx_versioned.lib import TempDir, ConfigInject
 from sphinx_versioned.versions import GitVersions, BuiltVersions, PseudoBranch
+from enum import Enum
 
 
 class VersionedDocs:
@@ -29,6 +30,11 @@ class VersionedDocs:
     ----------
     config : :class:`dict`
     """
+
+    class CacheState(Enum):
+        MISSING = "missing"
+        OUTDATED = "outdated"
+        VALID = "valid"
 
     def __init__(self, config: dict, debug: bool = False) -> None:
         self.config = config
@@ -184,22 +190,23 @@ class VersionedDocs:
         with open(self.output_dir / "versions_picker.html", "w") as picker_file:
             picker_file.write(template.render(versions=EventHandlers.VERSIONS))
 
-    def _check_cache(self, tag, out_dir_name):
+    def _check_cache(self, tag, out_dir_name) -> CacheState:
         if self.cache is None:
-            return False
+            return self.CacheState.MISSING
 
         cache_dir = os.path.join(self.cache, out_dir_name)
         cache_sha_filename = os.path.join(cache_dir, ".sha")
+        index_filename = os.path.join(cache_dir, "index.html")
 
     
-        if not (os.path.exists(cache_dir) and os.path.exists(cache_sha_filename)):
-            return False
+        if not (os.path.exists(index_filename) and os.path.exists(cache_sha_filename)):
+            return self.CacheState.MISSING
 
         with open(cache_sha_filename, "r") as sha_file:
             if sha_file.read() == tag.commit.hexsha:
-                return True
+                return self.CacheState.VALID
             else:
-                return False
+                return self.CacheState.OUTDATED
 
     def _build(self, tag, _prebuild: bool = False) -> bool:
         """Internal build method which actually carries out the pre-build/build transctions
@@ -221,25 +228,32 @@ class VersionedDocs:
         tag_dir = tag.name.replace("/", "_")
         output_with_tag = self.output_dir / tag_dir
         cache_with_tag = os.path.join(self.cache, tag_dir) if self.cache else None
-        cache_valid = self._check_cache(tag, tag_dir)
+        cache_state = self._check_cache(tag, tag_dir)
 
         if not output_with_tag.exists():
                 output_with_tag.mkdir(parents=True, exist_ok=True)
 
         with TempDir() as temp_dir:
-            if cache_valid:
+            build_allowed = True
+            if (self.update_only is not None) and not fnmatch.fnmatch(tag.name, self.update_only):
+                log.info(f"Won't rebuild due to `--update-only {self.update_only}`. Checking cache")
+                build_allowed = False
+
+            if cache_state is self.CacheState.VALID:
                 log.success(f"Cache is up-to-date for {tag}. Reusing and skipping build")
                 if VersionedDocs._are_different_paths(cache_with_tag, output_with_tag):
                     shutil.copytree(cache_with_tag, output_with_tag, False, None, dirs_exist_ok=True)
                 return True
-            elif (cache_with_tag is not None) and os.path.exists(os.path.join(cache_with_tag, 'index.html')):
+            elif cache_state is self.CacheState.OUTDATED:
                 log.info(f"Cache is outdated for {tag}. Building")
+                copy_destination = temp_dir if build_allowed else output_with_tag
                 # Still copy, so that sphinx incremental build could be utilized
-                shutil.copytree(cache_with_tag, temp_dir, False, None, dirs_exist_ok=True)
+                shutil.copytree(cache_with_tag, copy_destination, False, None, dirs_exist_ok=True)
+            else:
+                log.info("Cache is missing or not enabled.")
 
-            if (self.update_only is not None) and not fnmatch.fnmatch(tag.name, self.update_only):
-                log.info(f"Tag {tag} is out of date, but won't rebuild due to `--update-only {self.update_only}`")
-                return os.path.exists(os.path.join(output_with_tag, 'index.html')) # To indicate whether version exists or not
+            if not build_allowed:
+                return False if cache_state is self.CacheState.MISSING else True
 
             # Checkout tag/branch
             self.versions.checkout(tag)
