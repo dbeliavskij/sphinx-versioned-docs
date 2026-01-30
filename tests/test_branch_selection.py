@@ -34,9 +34,9 @@ def test_parse_branch_selection(branches, select, exclude):
 @pytest.mark.parametrize(
     "branches, select, exclude",
     [
-        ("main,v*", ["main", "v1.0", "v2.0"], []),
-        ("-v2.*", ["main", "v1.0"], ["v2.0"]),
-        ("-v*", ["main"], ["v1.0", "v2.0"]),
+        ("main,v*", ["main", "v1.0", "v1.4-rc"], []),
+        ("-v1.3.*", ["main", "v1.0"], ["v1.3.1"]),
+        ("-v*", ["main"], ["v1.0", "v1.4-rc"]),
     ],
 )
 def test_parse_branch_selection_regex(branches, select, exclude):
