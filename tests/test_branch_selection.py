@@ -54,8 +54,10 @@ def test_parse_branch_selection_regex(branches, select, exclude):
             "quite": False,
             "verbose": True,
             "force_branches": True,
+            "branch_regex": None
         },
         debug=True,
+        fail_on_dirty_repo=False,
     )
     _names_versions_to_pre_build = [x.name for x in ver._versions_to_pre_build]
     for tag in select:
