@@ -9,6 +9,7 @@ on:
       - '**.py'
       - '*.toml'
       - 'poetry.lock'
+      - '**/test.yml'
 
 permissions:
   contents: read
@@ -23,6 +24,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-tags: true
+        fetch-depth: 0
     - name: Set up Python 3.12
       uses: actions/setup-python@v3
       with:
