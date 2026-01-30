@@ -84,14 +84,14 @@ class VersionedDocs:
         self._additional_args += ("-vv",) if self.verbose else ()
         return True
 
-    def _handle_paths(self, fail_on_dirty_repo) -> None:
+    def _handle_paths(self, allow_dirty_repos) -> None:
         """Method to handle cwd and path for local config, as well as, configure
         :class:`~sphinx_versioned.versions.GitVersions` and the output directory.
         """
         self.chdir = self.chdir if self.chdir else os.getcwd()
         log.debug(f"Working directory {self.chdir}")
 
-        self.versions = GitVersions(self.git_root, self.output_dir, self.force_branches, fail_on_dirty_repo=fail_on_dirty_repo)
+        self.versions = GitVersions(self.git_root, self.output_dir, self.force_branches, allow_dirty_repos=allow_dirty_repos)
         self.output_dir = pathlib.Path(self.output_dir)
         self.local_conf = pathlib.Path(self.local_conf)
 

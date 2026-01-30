@@ -78,7 +78,7 @@ class GitVersions(_BranchTag):
         Use this option to build docs for detached head/commits.
     """
 
-    def __init__(self, git_root: str, build_directory: str, force_branches: bool, fail_on_dirty_repo: bool = True) -> None:
+    def __init__(self, git_root: str, build_directory: str, force_branches: bool, allow_dirty_repos: bool = False) -> None:
         self.git_root = git_root
         self.build_directory = pathlib.Path(build_directory)
         self.force_branches = force_branches
@@ -95,7 +95,7 @@ class GitVersions(_BranchTag):
             if self.repo.bare:
                 log.error("The git repository is bare. Add some commits then try again!")
                 exit(-1)
-        if fail_on_dirty_repo:
+        if not allow_dirty_repos:
             self._check_if_clean()
         log.success("latched into the git repo")
 
