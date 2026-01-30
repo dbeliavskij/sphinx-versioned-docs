@@ -2,7 +2,7 @@ import os
 import pytest
 import pathlib
 from bs4 import BeautifulSoup as bs
-from sphinx_versioned.build import VersionedDocs
+from sphinx_versioned.build import VersionedDocs, GitVersions
 from sphinx_versioned.lib import parse_branch_selection
 
 
@@ -53,12 +53,12 @@ def test_parse_branch_selection_regex(branches, select, exclude):
             "main_branch": "main",
             "quite": False,
             "verbose": True,
-            "force_branches": True,
+            "force_branches": False,
             "branch_regex": None
         },
         debug=True,
     )
-    _names_versions_to_pre_build = [x.name for x in ver._versions_to_pre_build]
+    _names_versions_to_pre_build = [GitVersions.get_pretty_ref_name(x) for x in ver._versions_to_pre_build]
     for tag in select:
         assert tag in _names_versions_to_pre_build
     for tag in exclude:

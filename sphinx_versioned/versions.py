@@ -59,6 +59,17 @@ class _BranchTag(ABC):
             x: "../" + os.path.join(str(y.relative_to(self.build_directory)).replace("/", "_").replace("\\", "_"), "index.html") for x, y in self._tags.items()
         }
 
+    def get_pretty_ref_name(ref) -> str:
+        """
+        Given a reference will return a proper name for it.
+        Currently, only modifies name for remote references
+        by removing remote info: 'origin/main` -> `main`
+        """
+        if isinstance(ref, git.RemoteReference):
+            return ref.name.removeprefix(ref.remote_name + '/')
+        else:
+            return ref.name
+
     pass
 
 
@@ -113,11 +124,11 @@ class GitVersions(_BranchTag):
         -------
         :class:`bool`
         """
-        self._raw_branches = [ref for ref in self.repo.remote().refs]
-        self._raw_tags = self.repo.tags
-        self._branches = {x.name: self.build_directory / x.name for x in self._raw_branches}
-        self._tags = {x.name: self.build_directory / x.name for x in self._raw_tags}
-        self.all_versions = [*self._raw_tags, *self._raw_branches]
+        _raw_branches = [ref for ref in self.repo.remote().refs]
+        _raw_tags = self.repo.tags
+        self._branches = {_BranchTag.get_pretty_ref_name(x): self.build_directory / _BranchTag.get_pretty_ref_name(x) for x in _raw_branches}
+        self._tags = {_BranchTag.get_pretty_ref_name(x): self.build_directory / _BranchTag.get_pretty_ref_name(x) for x in _raw_tags}
+        self.all_versions = [*_raw_tags, *_raw_branches]
 
         # check if if the current git status is detached, if yes, and if `--force` is supplied -> append:
         if self.repo.head.is_detached:
@@ -126,13 +137,13 @@ class GitVersions(_BranchTag):
                 log.debug("Forcing detached commit into PseudoBranch")
                 self.all_versions.append(PseudoBranch(self.repo, self.repo.head.object.hexsha))
 
-        log.debug(f"Found versions: {[x.name for x in self.all_versions]}")
+        log.debug(f"Found versions: {[_BranchTag.get_pretty_ref_name(x) for x in self.all_versions]}")
         return True
 
     def checkout(self, branch) -> bool:
         """Checkout branch/tag and handle submodules safely."""
         self._active_branch = branch
-        log.debug(f"git checkout branch/tag: `{branch.name}`")
+        log.debug(f"git checkout branch/tag: `{_BranchTag.get_pretty_ref_name(branch)}`")
 
         # Checkout main repo
         if isinstance(branch, git.TagReference):
@@ -200,17 +211,17 @@ class BuiltVersions(_BranchTag):
 
     def _parse(self) -> bool:
         """Parse raw branches/tags in :class:`~sphinx_versioned.versions.GitVersions` instance into separate variables."""
-        self._raw_tags = []
-        self._raw_branches = []
+        _raw_tags = []
+        _raw_branches = []
 
         for tag in self._versions:
             if isinstance(tag, git.TagReference):
-                self._raw_tags.append(tag)
+                _raw_tags.append(tag)
             else:
-                self._raw_branches.append(tag)
+                _raw_branches.append(tag)
 
-        self._branches = {x.name: self.build_directory / x.name for x in self._raw_branches}
-        self._tags = {x.name: self.build_directory / x.name for x in self._raw_tags}
+        self._branches = {_BranchTag.get_pretty_ref_name(x): self.build_directory / _BranchTag.get_pretty_ref_name(x) for x in _raw_branches}
+        self._tags = {_BranchTag.get_pretty_ref_name(x): self.build_directory / _BranchTag.get_pretty_ref_name(x) for x in _raw_tags}
         return True
 
     pass

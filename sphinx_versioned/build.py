@@ -47,7 +47,7 @@ class VersionedDocs:
 
         # Get all versions and make a lookup table
         self._all_branches = self.versions.all_versions
-        self._lookup_branch = {x.name: x for x in self._all_branches}
+        self._lookup_branch = {GitVersions.get_pretty_ref_name(x): x for x in self._all_branches}
 
         self._select_exclude_branches()
 
@@ -72,7 +72,7 @@ class VersionedDocs:
         self._generate_top_level_index()
         self._generate_version_picker()
 
-        print(f"\n\033[92m Successfully built {', '.join([x.name for x in self._built_version])} \033[0m")
+        print(f"\n\033[92m Successfully built {', '.join([GitVersions.get_pretty_ref_name(x) for x in self._built_version])} \033[0m")
         return
 
     def _parse_config(self, config: dict) -> bool:
@@ -138,7 +138,7 @@ class VersionedDocs:
         if not self.exclude_branches:
             return
 
-        _names_versions_to_pre_build = [x.name for x in self._versions_to_pre_build]
+        _names_versions_to_pre_build = [GitVersions.get_pretty_ref_name(x) for x in self._versions_to_pre_build]
         for tag in self.exclude_branches:
             filtered_tags = fnmatch.filter(_names_versions_to_pre_build, tag)
             for x in filtered_tags:
@@ -154,14 +154,14 @@ class VersionedDocs:
         self._select_branches()
         self._exclude_branches()
 
-        log.info(f"selected branches: `{[x.name for x in self._versions_to_pre_build]}`")
+        log.info(f"selected branches: `{[GitVersions.get_pretty_ref_name(x) for x in self._versions_to_pre_build]}`")
         return
 
     def _generate_top_level_index(self) -> None:
         """Generate a top-level ``index.html`` which redirects to the main-branch version specified
         via ``main_branch``.
         """
-        if self.main_branch not in [x.name for x in self._built_version]:
+        if self.main_branch not in [GitVersions.get_pretty_ref_name(x) for x in self._built_version]:
             log.critical(
                 f"main branch `{self.main_branch}` not found!! / not building `{self.main_branch}`; "
                 "top-level `index.html` will not be generated!"
@@ -235,7 +235,7 @@ class VersionedDocs:
 
         with TempDir() as temp_dir:
             build_allowed = True
-            if (self.update_only is not None) and not fnmatch.fnmatch(tag.name, self.update_only):
+            if (self.update_only is not None) and not fnmatch.fnmatch(GitVersions.get_pretty_ref_name(tag), self.update_only):
                 log.info(f"Won't rebuild due to `--update-only {self.update_only}`. Checking cache")
                 build_allowed = False
 
@@ -257,7 +257,7 @@ class VersionedDocs:
 
             # Checkout tag/branch
             self.versions.checkout(tag)
-            EventHandlers.CURRENT_VERSION = tag.name
+            EventHandlers.CURRENT_VERSION = GitVersions.get_pretty_ref_name(tag)
 
             log.debug(f"Checking out the tag in temporary directory: {temp_dir}")
             source = str(self.local_conf.parent)
@@ -310,7 +310,7 @@ class VersionedDocs:
             # restore to active branch
             self.versions.checkout(self._active_branch)
 
-        log.success(f"Prebuilding successful for {', '.join([x.name for x in self._versions_to_build])}")
+        log.success(f"Prebuilding successful for {', '.join([GitVersions.get_pretty_ref_name(x) for x in self._versions_to_build])}")
         return
 
     def build(self) -> None:
