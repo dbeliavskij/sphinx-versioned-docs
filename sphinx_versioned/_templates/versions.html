@@ -11,7 +11,14 @@
       fetch("{{ relpath }}versions_picker.html")
         .then(response => response.text())
         .then(html => {
-          document.getElementById('rst-other-versions').innerHTML = html;
+          const container = document.getElementById('rst-other-versions');
+          container.innerHTML = html;
+          const versionRoot = new URL("{{ relpath }}", window.location.href);
+          for (const a of container.querySelectorAll('a[version-directory-name]')) {
+            const versionId = a.getAttribute('version-directory-name');
+            const target = new URL(`../${versionId}/index.html`, versionRoot);
+            a.href = target.toString();
+          }
         })
         .catch(err => console.error('Could not load version picker:', err));
     </script>

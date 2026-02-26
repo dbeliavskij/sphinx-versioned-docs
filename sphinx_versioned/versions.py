@@ -43,7 +43,7 @@ class _BranchTag(ABC):
         :class:`dict`
         """
         return {
-            x: "../" + os.path.join(str(y.relative_to(self.build_directory)).replace("/", "_").replace("\\", "_"), "index.html")
+            x: str(y.relative_to(self.build_directory)).replace("/", "_").replace("\\", "_")
             for x, y in self._branches.items()
         }
 
@@ -56,7 +56,7 @@ class _BranchTag(ABC):
         :class:`dict`
         """
         return {
-            x: "../" + os.path.join(str(y.relative_to(self.build_directory)).replace("/", "_").replace("\\", "_"), "index.html") for x, y in self._tags.items()
+            x: str(y.relative_to(self.build_directory)).replace("/", "_").replace("\\", "_") for x, y in self._tags.items()
         }
 
     def get_pretty_ref_name(ref) -> str:

@@ -4,7 +4,7 @@
         <dt>Tags</dt>
         {%- for name, url in versions.tags.items() %}
         <dd class="">
-            <a href="../{{ url }}">{{ name }}</a>
+            <a version-directory-name="{{ url }}">{{ name }}</a>
         </dd>
         {% endfor %}
     </dl>
@@ -15,7 +15,7 @@
         <dt>Branches</dt>
         {%- for name, url in versions.branches.items() %}
         <dd class="">
-            <a href="../{{ url }}">{{ name }}</a>
+            <a version-directory-name="{{ url }}">{{ name }}</a>
         </dd>
         {% endfor %}
     </dl>

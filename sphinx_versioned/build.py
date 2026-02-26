@@ -225,7 +225,7 @@ class VersionedDocs:
         :class:`bool`
         """
         # Setup paths and variables
-        tag_dir = tag.name.replace("/", "_")
+        tag_dir = GitVersions.get_pretty_ref_name(tag).replace("/", "_")
         output_with_tag = self.output_dir / tag_dir
         cache_with_tag = os.path.join(self.cache, tag_dir) if self.cache else None
         cache_state = self._check_cache(tag, tag_dir)
