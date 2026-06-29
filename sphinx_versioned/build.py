@@ -244,13 +244,8 @@ class VersionedDocs:
                 if VersionedDocs._are_different_paths(cache_with_tag, output_with_tag):
                     shutil.copytree(cache_with_tag, output_with_tag, False, None, dirs_exist_ok=True)
                 return True
-            elif cache_state is self.CacheState.OUTDATED:
-                log.info(f"Cache is outdated for {tag}. Building")
-                copy_destination = temp_dir if build_allowed else output_with_tag
-                # Still copy, so that sphinx incremental build could be utilized
-                shutil.copytree(cache_with_tag, copy_destination, False, None, dirs_exist_ok=True)
             else:
-                log.info("Cache is missing or not enabled.")
+                log.info(f"Cache for {tag} is missing, outdated or not enabled.")
 
             if not build_allowed:
                 return False if cache_state is self.CacheState.MISSING else True
